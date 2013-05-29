@@ -1,0 +1,48 @@
+<head>
+  <title>Hyperlinky</title>
+</head>
+
+<body>
+
+	<header>
+		{{> header}}
+	</header>
+
+	{{> content}}
+  
+</body>
+
+<template name="content">
+	{{#if currentUser}}
+		{{> links}}
+	{{else}}
+		{{> staticlinks}}
+	{{/if}}
+</template>
+
+<template name="header">
+	<h1>Hyperlinky</h1>
+	{{> auth}}
+</template>
+
+<template name="auth">
+	{{loginButtons}}
+</template>
+
+<template name="staticlinks">
+	{{> links}}
+</template>
+
+<template name="links">
+	<ul id="links" data-id="{{linksId}}">
+		{{#each links}}
+			{{> link}}
+		{{/each}}
+	</ul>
+</template>
+
+<template name="link">
+	<li class="link {{#if hidden}} dead {{/if}}" data-name="{{name}}" data-location="{{location}}">
+        {{name}}
+    </li>
+</template>
