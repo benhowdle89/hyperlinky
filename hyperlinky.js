@@ -7,15 +7,28 @@ if (Meteor.isClient) {
       var defaults = [{
           name: 'twitter',
           location: 0,
-          hidden: false
-        }, {
-          name: 'dribbble',
-          location: 1,
-          hidden: false
+          hidden: false,
+          href: "https://twitter.com/i/connect"
         }, {
           name: 'medium',
+          location: 1,
+          hidden: false,
+          href: "https://medium.com/me/activity"
+        }, {
+          name: 'github',
           location: 2,
-          hidden: false
+          hidden: false,
+          href: 'https://github.com/'
+        }, {
+          name: 'gmail',
+          location: 3,
+          hidden: false,
+          href: 'https://mail.google.com/mail/u/0/?hl=en&shva=1#inbox'
+        }, {
+          name: 'google+',
+          location: 4,
+          hidden: false,
+          href: 'https://plus.google.com/notifications/all'
         }
       ];
       var l = LinksCollection.findOne({
@@ -31,7 +44,13 @@ if (Meteor.isClient) {
         });
       }
 
-      return sortByKey(_.extend(defaults, userLinks), 'location');
+      var newArr = [];
+      $.each(defaults, function(index, value) {
+        $.extend(value, userLinks[index]);
+        newArr[index] = value;
+      });
+
+      return sortByKey(newArr, 'location');
     }
   };
 
@@ -58,37 +77,42 @@ if (Meteor.isClient) {
       } else {
         cl.add('dead');
       }
+      saveState();
     };
 
-    each.call(links, function(link) {
-      link.addEventListener('click', toggleOpacity, false);
-    });
+    var saveState = function() {
+      var linksArr = [];
+      var nodeList = Array.prototype.slice.call(document.querySelectorAll('#links li'));
+      each.call(links, function(link) {
+        linksArr.push({
+          name: link.getAttribute('data-name'),
+          location: nodeList.indexOf(link),
+          hidden: !! (link.classList.contains('dead'))
+        });
+      });
+
+      var id = linksList.getAttribute('data-id');
+      if (id) {
+        Meteor.saveLinks({
+          _id: id
+        }, {
+          'links': linksArr
+        });
+      } else {
+        Meteor.createLinks({
+          userId: Meteor.userId(),
+          links: linksArr
+        });
+      }
+    };
+
+    // each.call(links, function(link) {
+    //   link.addEventListener('click', toggleOpacity, false);
+    // });
 
     $('#links').sortable({
       update: function(event, ui) {
-        var linksArr = [];
-        var nodeList = Array.prototype.slice.call(document.querySelectorAll('#links li'));
-        each.call(links, function(link) {
-          linksArr.push({
-            name: link.getAttribute('data-name'),
-            location: nodeList.indexOf(link),
-            hidden: !! (link.classList.contains('dead'))
-          });
-        });
-
-        var id = linksList.getAttribute('data-id');
-        if (id) {
-          Meteor.saveLinks({
-            _id: id
-          }, {
-            'links': linksArr
-          });
-        } else {
-          Meteor.createLinks({
-            userId: Meteor.userId(),
-            links: linksArr
-          });
-        }
+        saveState();
       }
     });
   };
